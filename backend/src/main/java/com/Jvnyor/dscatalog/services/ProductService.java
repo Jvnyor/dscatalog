@@ -1,6 +1,8 @@
 package com.Jvnyor.dscatalog.services;
 
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
@@ -12,7 +14,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.Jvnyor.dscatalog.dto.CategoryDTO;
 import com.Jvnyor.dscatalog.dto.ProductDTO;
 import com.Jvnyor.dscatalog.entities.Category;
 import com.Jvnyor.dscatalog.entities.Product;
@@ -63,6 +64,7 @@ public class ProductService {
 		}
 	}
 
+	@Transactional
 	public void delete(Long id) {
 		try {
 			repository.deleteById(id);
@@ -81,9 +83,7 @@ public class ProductService {
 		entity.setPrice(dto.getPrice());
 		
 		entity.getCategories().clear();
-		for (CategoryDTO catDto : dto.getCategories()) {
-			Category category = categoryRepository.getOne(catDto.getId());
-			entity.getCategories().add(category);
-		}
+		Set<Category> categories = dto.getCategories().stream().map(x -> categoryRepository.getOne(x.getId())).collect(Collectors.toSet());
+		entity.getCategories().addAll(categories);
 	}
 }
