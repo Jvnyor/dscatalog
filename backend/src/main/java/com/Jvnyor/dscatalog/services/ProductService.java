@@ -2,6 +2,8 @@ package com.Jvnyor.dscatalog.services;
 
 import java.util.Optional;
 
+import javax.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -31,14 +33,14 @@ public class ProductService {
 	@Transactional(readOnly = true)
 	public Page<ProductDTO> findAllPaged(Pageable pageable) {
 		Page<Product> list = repository.findAll(pageable);
-		return list.map(x -> new ProductDTO(x, x.getCategories()));
+		return list.map(x -> new ProductDTO(x));
 	}
 
 	@Transactional(readOnly = true)
 	public ProductDTO findById(Long id) {
 		Optional<Product> obj = repository.findById(id);
 		Product entity = obj.orElseThrow(() -> new ResourceNotFoundException("Entity not found"));
-		return new ProductDTO(entity, entity.getCategories());
+		return new ProductDTO(entity);
 	}
 	
 	@Transactional
@@ -56,7 +58,7 @@ public class ProductService {
 			copyDtoToEntity(dto, entity);
 			entity = repository.save(entity);
 			return new ProductDTO(entity);
-		} catch (ResourceNotFoundException e) {
+		} catch (EntityNotFoundException e) {
 			throw new ResourceNotFoundException("Id not found " + id);
 		}
 	}

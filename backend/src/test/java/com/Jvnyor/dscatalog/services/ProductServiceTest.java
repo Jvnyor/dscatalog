@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
@@ -76,11 +76,11 @@ class ProductServiceTest {
 		
 		when(repository.getOne(existingId)).thenReturn(product);
 		
+		when(repository.getOne(nonExistingId)).thenThrow(ResourceNotFoundException.class);
+		
 		when(categoryRepository.getOne(existingId)).thenReturn(category);
 		
-		when(categoryRepository.getOne(nonExistingId)).thenThrow(ResourceNotFoundException.class);
-		
-		when(repository.getOne(nonExistingId)).thenThrow(ResourceNotFoundException.class);
+		when(categoryRepository.getOne(nonExistingId)).thenThrow(ResourceNotFoundException.class);	
 		
 		doNothing().when(repository).deleteById(existingId);
 		
@@ -97,6 +97,12 @@ class ProductServiceTest {
 		
 		assertNotNull(result);
 		verify(repository, Mockito.times(1)).findAll(pageable);
+	}
+	
+	@Test
+	void insertShouldReturnProductDTO() {
+		assertNotNull(service.insert(productDTO));
+		assertEquals(service.insert(productDTO), productDTO);
 	}
 	
 	@Test
