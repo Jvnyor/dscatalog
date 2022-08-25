@@ -6,11 +6,16 @@ import java.util.stream.Collectors;
 
 import javax.persistence.EntityNotFoundException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,8 +31,10 @@ import com.Jvnyor.dscatalog.services.exceptions.DatabaseException;
 import com.Jvnyor.dscatalog.services.exceptions.ResourceNotFoundException;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
+	private static Logger log = LoggerFactory.getLogger(UserService.class);
+	
 	@Autowired
 	private BCryptPasswordEncoder passwordEncoder;
 	
@@ -90,5 +97,16 @@ public class UserService {
 		entity.getRoles().clear();
 		Set<Role> roles = dto.getRoles().stream().map(x -> roleRepository.getOne(x.getId())).collect(Collectors.toSet());
 		entity.getRoles().addAll(roles);
+	}
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		User user = repository.findByEmail(username);
+		if (user == null) {
+			log.error("User not found: {}", username);
+			throw new UsernameNotFoundException("Email not found");
+		}
+		log.info("User found: {}", username);
+		return user;
 	}
 }
